@@ -1,23 +1,11 @@
-# Diagram B - Request flow with correlation ID
+# Diagram A - System architecture (components + routing)
 
 ```mermaid
-sequenceDiagram
-    participant C as Client
-    participant I as Traefik Ingress
-    participant G as Gateway
-    participant K as KEDA Interceptor
-    participant CH as checkout-fn
-    participant P as pricing-fn
-    participant INV as inventory-fn
-    participant DB as PostgreSQL
+flowchart TD
+    Client[Browser / curl] --> Ingress[Ingress (Traefik)]
+    Ingress --> Gateway[gateway-svc (NGINX/UI)]
+    Gateway --> Checkout[checkout-svc]
 
-    C->>I: POST /api/checkout\nX-Request-Id: prashidi-123
-    I->>G: Route request
-    G->>K: Forward /api/checkout
-    K->>CH: Scale if needed and forward request
-    CH->>P: POST /price\nX-Request-Id: prashidi-123
-    CH->>INV: GET /stock/:sku\nX-Request-Id: prashidi-123
-    P-->>CH: Price response
-    INV-->>CH: Stock response
-    CH->>DB: Insert checkout record
-    CH-->>C: Checkout response
+    Checkout --> Pricing[pricing-svc]
+    Checkout --> Inventory[inventory-svc]
+    Checkout --> Postgres[postgres-svc (PVC)]
